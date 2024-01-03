@@ -14,7 +14,6 @@ resources:
 - repo: self
 
 variables:
-
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '7f9d8d85-7a18-4e9f-9ee8-b38145ee827a'
   imageRepository: 'petstorepetservice'
@@ -74,7 +73,6 @@ stages:
     strategy:
       runOnce:
         deploy:
-          progressDeadlineSeconds: 600  # Set to a value that accommodates your deployment time
           steps:
           - task: KubernetesManifest@0
             displayName: Deploy to Kubernetes cluster
@@ -89,3 +87,4 @@ stages:
                 $(imagePullSecret)
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
+          progressDeadlineSeconds: 600  # Set to a value that accommodates your deployment time
