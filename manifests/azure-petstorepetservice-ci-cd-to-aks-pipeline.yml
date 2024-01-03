@@ -87,4 +87,14 @@ stages:
                 $(imagePullSecret)
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
-          progressDeadlineSeconds: 600  # Set to a value that accommodates your deployment time
+
+          # Add a script to wait for deployment completion
+          - script: |
+              echo "Waiting for deployment to complete..."
+              kubectl rollout status deployment aks-petstorepetservice -n ingress-petstoreservices
+            displayName: 'Wait for Deployment'
+
+          # Add any additional steps after the deployment is complete
+          - script: |
+              echo "Deployment completed. Add your post-deployment steps here."
+            displayName: 'Post-Deployment Steps'
