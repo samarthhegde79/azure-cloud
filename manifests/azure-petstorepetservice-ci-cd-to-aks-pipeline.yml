@@ -14,18 +14,28 @@ resources:
 - repo: self
 
 variables:
+
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '70aa685a-f251-437f-aaa2-ef1c1fdfc765'
   imageRepository: 'petstorepetservice'
   containerRegistry: 'azurepetstorecontainerregistry.azurecr.io'
   dockerfilePath: 'petstore/petstorepetservice/Dockerfile'
   tag: '$(Build.BuildId)'
-  imagePullSecret: '$(crImagePullSecretGlobal)'
+  imagePullSecret: '$(crImagePullSecretGlobalV3)'
   
 stages:
 - stage: Build
   displayName: Build stage
   jobs: 
+ # - job: Analysis
+ #   displayName: Security Analysis
+ #   pool:
+ #     vmImage: 'windows-latest'
+ #   steps:
+ #   - task: CredScan@2
+ #     inputs:
+ #       toolMajorVersion: 'V2'
+ 
   - job: Build
     displayName: Build App
     pool:
@@ -87,14 +97,19 @@ stages:
                 $(imagePullSecret)
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
-
-          # Add a script to wait for deployment completion
-          - script: |
-              echo "Waiting for deployment to complete..."
-              kubectl rollout status deployment aks-petstorepetservice -n ingress-petstoreservices
-            displayName: 'Wait for Deployment'
-
-          # Add any additional steps after the deployment is complete
-          - script: |
-              echo "Deployment completed. Add your post-deployment steps here."
-            displayName: 'Post-Deployment Steps'
+                
+- stage: Automation
+  displayName: Automation stage
+  jobs: 
+  - job: Automation
+    displayName: Automation Testing
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+        - task: TriggerPipeline@1
+          inputs:
+            serviceConnection: 'Automation'
+            project: '6b3206dd-90b3-40f6-a611-e5a1e5a13593'
+            Pipeline: 'Build'
+            buildDefinition: 'azure-petstoreautomation-regression-tests'
+            Branch: 'main'
