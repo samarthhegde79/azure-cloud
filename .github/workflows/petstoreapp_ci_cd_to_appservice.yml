@@ -1,8 +1,8 @@
 name: Pet Store App CI/CD to Azure App Service
   
 env:
-  AZURE_CONTAINER_REGISTRY: azurepetstorecontainerregistry.azurecr.io
-  AZURE_CONTAINER_REGISTRY_USERNAME: azurepetstorecontainerregistry
+  AZURE_CONTAINER_REGISTRY: texiioazurepetstorecr.azurecr.io
+  AZURE_CONTAINER_REGISTRY_USERNAME: texiioazurepetstorecr
   
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
       with:
         login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
         username: ${{ env.AZURE_CONTAINER_REGISTRY_USERNAME }}
-        password: ${{ secrets.PETSTORECRSECRET }}
+        password: K8uUC8gtIcyUQxnsfjEWB1SvcA7nxlUowCzu8/Gsr6+ACRCKaVZH
     - name: Push Docker image to Azure Container Registry    
       run: |
         docker build petstore/petstoreapp -t ${{env.AZURE_CONTAINER_REGISTRY}}/petstoreapp:latest -t ${{ env.AZURE_CONTAINER_REGISTRY }}/petstoreapp:${{ github.sha }}
