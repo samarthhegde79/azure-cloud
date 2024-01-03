@@ -78,7 +78,7 @@ stages:
               kubectl apply -f $(Pipeline.Workspace)/manifests/petstorepetservice-deployment-everything-enabled.yml -n ingress-petstoreservices --timeout=600s
               kubectl apply -f $(Pipeline.Workspace)/manifests/petstorepetservice-service-everything-enabled.yml -n ingress-petstoreservices
 
-
+                
 # - stage: Automation
 #   displayName: Automation stage
 #   jobs: 
