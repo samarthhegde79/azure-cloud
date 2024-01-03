@@ -1,41 +1,26 @@
-# Deploy to Azure Kubernetes Service
-# Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
 trigger:
   branches:
     include:
-    - main
+      - main
   paths:
     include:
-    - petstore/petstorepetservice/*
+      - petstore/petstorepetservice/*
 
 resources:
 - repo: self
 
 variables:
-
-  # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '70aa685a-f251-437f-aaa2-ef1c1fdfc765'
   imageRepository: 'petstorepetservice'
   containerRegistry: 'azurepetstorecontainerregistry.azurecr.io'
   dockerfilePath: 'petstore/petstorepetservice/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: '$(crImagePullSecretGlobalV3)'
-  
+
 stages:
 - stage: Build
   displayName: Build stage
   jobs: 
- # - job: Analysis
- #   displayName: Security Analysis
- #   pool:
- #     vmImage: 'windows-latest'
- #   steps:
- #   - task: CredScan@2
- #     inputs:
- #       toolMajorVersion: 'V2'
- 
   - job: Build
     displayName: Build App
     pool:
@@ -44,7 +29,6 @@ stages:
     - script: echo -n -e "{\"version\":\"$(Build.BuildNumber) - $(tag)\"}" > petstore/petstorepetservice/src/main/resources/version.json
 
     - task: Maven@3
-      continueOnError: true 
       displayName: Build Spring Boot Jar
       inputs:
         mavenPomFile: 'petstore/petstorepetservice/pom.xml'
@@ -56,24 +40,24 @@ stages:
         testResultsFiles: 'petstore/petstorepetservice/target/surefire-reports/TEST-*.xml'
         codeCoverageToolOption: 'jaCoCo'
         goals: 'package'
+    
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
+        command: 'buildAndPush'
+        repository: '$(imageRepository)'
+        dockerfile: '$(dockerfilePath)'
+        containerRegistry: '$(dockerRegistryServiceConnection)'
         tags: |
           $(tag)
           latest
-          
+
     - upload: manifests
       artifact: manifests
 
 - stage: Deploy
   displayName: Deploy Stage
   dependsOn: Build
-
   jobs:
   - deployment: Deploy
     displayName: Deploy App
@@ -87,9 +71,9 @@ stages:
           - task: KubernetesManifest@0
             displayName: Deploy to Kubernetes cluster
             inputs:
-              action: deploy
-              kubernetesServiceConnection: 
-              namespace: ingress-petstoreservices
+              action: 'deploy'
+              kubernetesServiceConnection: texiioazurepetstore-akscluster
+              namespace: 'ingress-petstoreservices'
               manifests: |
                 $(Pipeline.Workspace)/manifests/petstorepetservice-deployment-everything-enabled.yml
                 $(Pipeline.Workspace)/manifests/petstorepetservice-service-everything-enabled.yml
@@ -97,20 +81,19 @@ stages:
                 $(imagePullSecret)
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
-                
+
 - stage: Automation
   displayName: Automation stage
-  jobs: 
+  jobs:
   - job: Automation
     displayName: Automation Testing
     pool:
       vmImage: 'windows-latest'
-    
     steps:
-        - task: TriggerPipeline@1
-          inputs:
-            serviceConnection: 'Automation'
-            project: '6b3206dd-90b3-40f6-a611-e5a1e5a13593'
-            Pipeline: 'Build'
-            buildDefinition: 'azure-petstoreautomation-regression-tests'
-            Branch: 'main'
+    - task: TriggerPipeline@1
+      inputs:
+        serviceConnection: 'Automation'
+        project: '6b3206dd-90b3-40f6-a611-e5a1e5a13593'
+        Pipeline: 'Build'
+        buildDefinition: 'azure-petstoreautomation-regression-tests'
+        Branch: 'main'
