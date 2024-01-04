@@ -16,9 +16,9 @@ resources:
 variables:
 
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '70aa685a-f251-437f-aaa2-ef1c1fdfc765'
+  dockerRegistryServiceConnection: 'f2a2663c-8f55-403d-a063-ccd683fe3e22'
   imageRepository: 'petstorepetservice'
-  containerRegistry: 'azurepetstorecontainerregistry.azurecr.io'
+  containerRegistry: 'texiioazurepetstorecr.azurecr.io'
   dockerfilePath: 'petstore/petstorepetservice/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: '$(crImagePullSecretGlobalV3)'
@@ -98,12 +98,12 @@ stages:
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
                 
-- stage: Automation
-  displayName: Automation stage
-  jobs: 
-  - job: Automation
-    displayName: Automation Testing
-    pool:
-      vmImage: 'windows-latest'
+# - stage: Automation
+#   displayName: Automation stage
+#   jobs: 
+#   - job: Automation
+#     displayName: Automation Testing
+#     pool:
+#       vmImage: 'windows-latest'
     
        
